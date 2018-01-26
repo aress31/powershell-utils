@@ -7,7 +7,7 @@
 A compilation of PowerShell scripts to assist me in my pentesting activities. 
 
 Comprises of:
-* **Edit-Routes.ps1**: Add/Remove networking routes. Takes a file containing a list of targets, information about the operation to perform (add/remove) and the type of engagement as input to edit the system networking routes. Particularly useful to route pentesting traffic via corporate VPNs.
+* **Edit-Routes.ps1**: Add/Remove networking routes. Takes a text file containing a list of targets, information about the operation to perform (add/remove) and the type of engagement as input to edit the system networking routes. Particularly useful to route pentesting traffic via corporate VPNs.
 
 ## License
 Copyright 2018 Alexandre Teyar
