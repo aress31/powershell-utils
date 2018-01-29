@@ -16,66 +16,47 @@
 
 Param(
     [Parameter(Mandatory=$True)]
-    [ValidateSet("external", "internal")]
-    [string]$engagementType,
+    [ValidateSet("add", "remove")]
+    [System.String] $action,
     [Parameter(Mandatory=$True)]
-    [ValidateSet("add", "delete")]
-    [string]$operation,
+    [System.String] $nextHop,
     [Parameter(Mandatory=$True)]
-    [string]$targetFile
+    [System.UInt32] $interfaceIndex,
+    [Parameter(Mandatory=$True)]
+    [System.String] $target
 )
 
-Write-Output "[*] Engagement type   : $($engagementType)"
-Write-Output "[*] Operation         : $($operation)"
-Write-Output "[*] Target file       : $($targetFile)"
+# $addressFamily = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetNeighbor.AddressFamily]::"IPv4"
+[System.UInt32] $routeMetric = 1
+# $persistentStore = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetRoute.Store]::"PersistentStore"
 
-switch ($engagementType) {
-    # gateway IP for external engagement 
-    "external" {
-        $gateway = "<REDACTED>"
-    }
-    # gateway IP for external engagement 
-    "internal" {
-        $gateway = "<REDACTED>"
-    }
-}
+Write-Output "[*] Action            : $action"
+Write-Output "[*] Interface index   : $interfaceIndex"
+Write-Output "[*] Next hop          : $nextHop"
+Write-Output "[*] Target file       : $target"
 
-Write-Output "[*] Gateway           : $($gateway)"
-
-# getting the correct adapater index
-foreach ($adapter in Get-NetAdapter | Where {$_.Status -eq "Up"}) {
-    $adapterIP = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $adapter.ifIndex).IPAddress
-
-    if ($adapterIP -Match $gateway.Substring(0, $gateway.lastIndexOf('.'))) {
-        Write-Output "[*] Interface index   : $($adapter.ifIndex)"
-        Write-Output "[*] Interface IP      : $($adapterIP)"
-        Write-Output "[*] Interface name    : $($adapter.Name)"
-
-        $adapterIndex = $adapter.ifIndex
-        $adapterName = $adapter.Name
-    }
-}
-
-foreach ($entry in Get-Content $targetFile) {
-    # ensure that the IP address is CIDR compliant
-    if (-not (([string]::IsNullOrEmpty($entry)) -or ($entry -match "^#"))) {
-        if (-not ($entry -match "/"))    {
-            Write-Output "[*] Rewritting the IP address to CIDR notation"
-            $entry = $entry + "/32"
+foreach ($entry in [System.IO.File]::ReadLines($target)) {
+    # ensure CIDR compliance
+    if (-not (([System.String]::IsNullOrEmpty($entry)) -or ($entry -match "^#"))) {
+        if (-not ($entry -match "/")) {
+            $entryCIDR = $entry + "/32"
+            Write-Output "[*] Rewritting $entry to $entryCIDR"
         }
 
-        switch ($operation) { 
+        switch ($action) { 
             "add" {
-                Write-Output "[+] Adding route to $($entry) via interface $($adapterName)"
-                netsh int ipv4 add route $entry interface=$adapterIndex metric=1 nexthop=$gateway store=persistent
+                Write-Output "[+] Adding new route to $entryCIDR"
+                netsh int ipv4 add route prefix=$entryCIDR interface=$interfaceIndex nexthop=$nextHop metric=$routeMetric store=persistent
+                # New-NetRoute -DestinationPrefix $entryCIDR -InterfaceIndex $interfaceIndex -NextHop $nextHop -RouteMetric $routeMetric -PolicyStore $persistentStore
             }
-            "delete" {
-                Write-Output "[-] Deleting route to $($entry) via interface $($adapterName)"
-                netsh int ipv4 delete route $entry interface=$adapterIndex
+            "remove" {
+                Write-Output "[-] Removing route to $entryCIDR"
+                netsh int ipv4 delete route prefix=$entryCIDR interface=$interfaceIndex nexthop=$nextHop store=persistent
+                # Remove-NetRoute -DestinationPrefix $entryCIDR -InterfaceIndex $interfaceIndex -NextHop $nextHop -RouteMetric $routeMetric -PolicyStore $persistentStore
             }
         }
+
     }
 }
 
-# check that everything went smoothly
-netsh int ipv4 show route store=persistent
+netsh int ipv4 show route store=persistent 

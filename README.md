@@ -4,10 +4,10 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## PowerShell utility scripts
-A compilation of PowerShell scripts to assist me in my pentesting activities. 
+A compilation of PowerShell scripts for pentesting activities. 
 
 Comprises of:
-* **Edit-Routes.ps1**: Add/Delete networking routes. Takes a text file containing a list of targets, information about the operation to perform (add/delete) and the type of engagement (external/internal) as input to edit the system networking routes. Particularly useful to route pentesting traffic via corporate VPNs.
+* **Edit-Routes.ps1**: Mass add/remove persistent static routes.
 
 ## License
 Copyright 2018 Alexandre Teyar
