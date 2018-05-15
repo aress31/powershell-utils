@@ -21,7 +21,7 @@ Param(
     [Parameter(Mandatory=$True)]
     [System.String] $nextHop,
     [Parameter(Mandatory=$True)]
-    [System.UInt32] $interfaceIndex,
+    [System.Object] $interface,
     [Parameter(Mandatory=$True)]
     [System.String] $target
 )
@@ -31,7 +31,7 @@ Param(
 # $persistentStore = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetRoute.Store]::"PersistentStore"
 
 Write-Output "[*] Action            : $action"
-Write-Output "[*] Interface index   : $interfaceIndex"
+Write-Output "[*] Interface         : $interface"
 Write-Output "[*] Next hop          : $nextHop"
 Write-Output "[*] Target file       : $target"
 
@@ -46,13 +46,13 @@ foreach ($entry in [System.IO.File]::ReadLines($target)) {
         switch ($action) { 
             "add" {
                 Write-Output "[+] Adding new route to $entryCIDR"
-                netsh int ipv4 add route prefix=$entryCIDR interface=$interfaceIndex nexthop=$nextHop metric=$routeMetric store=persistent
-                # New-NetRoute -DestinationPrefix $entryCIDR -InterfaceIndex $interfaceIndex -NextHop $nextHop -RouteMetric $routeMetric -PolicyStore $persistentStore
+                netsh int ipv4 add route prefix=$entryCIDR interface=$interface nexthop=$nextHop metric=$routeMetric store=persistent
+                # New-NetRoute -DestinationPrefix $entryCIDR -interface $interface -NextHop $nextHop -RouteMetric $routeMetric -PolicyStore $persistentStore
             }
             "remove" {
                 Write-Output "[-] Removing route to $entryCIDR"
-                netsh int ipv4 delete route prefix=$entryCIDR interface=$interfaceIndex nexthop=$nextHop store=persistent
-                # Remove-NetRoute -DestinationPrefix $entryCIDR -InterfaceIndex $interfaceIndex -NextHop $nextHop -RouteMetric $routeMetric -PolicyStore $persistentStore
+                netsh int ipv4 delete route prefix=$entryCIDR interface=$interface nexthop=$nextHop store=persistent
+                # Remove-NetRoute -DestinationPrefix $entryCIDR -interface $interface -NextHop $nextHop -RouteMetric $routeMetric -PolicyStore $persistentStore
             }
         }
 
